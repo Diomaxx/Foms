@@ -1,5 +1,3 @@
-puedes revisasr esto que est bien o si falta algo
-
 Create Table Voluntarios(
   id       SERIAL PRIMARY KEY,
   codigo   VARCHAR(20) UNIQUE,
