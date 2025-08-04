@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: ps
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: brigada
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pspgdata:/var/lib/postgresql/data
+    networks:
+      - electoral_network      
+volumes:
+  pspgdata:  
+
+networks:
+  ps:  # Definimos la red personalizada
+    driver: bridge  # Usamos el driver de red 'bridge', que es el predeterminado
