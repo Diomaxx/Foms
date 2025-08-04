@@ -10,12 +10,12 @@ services:
       POSTGRES_PASSWORD: admin123
       POSTGRES_DB: brigada
     ports:
-      - "5433:5432"
+      - "5440:5432"
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - pspgdata:/var/lib/postgresql/data
     networks:
-      - electoral_network      
+      - ps      
 volumes:
   pspgdata:  
 
