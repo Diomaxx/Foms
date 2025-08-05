@@ -1,5 +1,14 @@
 const pool = require('../db')
 
+exports.obtenerTodos = async (req, res) => {
+  try {
+    const resultado = await pool.query('SELECT * FROM ropa_tallas')
+    res.json(resultado.rows)
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener relaciones ropa-talla' })
+  }
+}
+
 exports.asignarTalla = async (req, res) => {
   const { id_ropa, id_talla, cantidad } = req.body
   try {

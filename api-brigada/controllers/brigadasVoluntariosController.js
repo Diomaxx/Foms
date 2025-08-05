@@ -1,5 +1,14 @@
 const pool = require('../db')
 
+exports.obtenerTodos = async (req, res) => {
+  try {
+    const resultado = await pool.query('SELECT * FROM brigadas_voluntarios')
+    res.json(resultado.rows)
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener relaciones brigada-voluntario' })
+  }
+}
+
 exports.asignarVoluntario = async (req, res) => {
   const { id_brigada, id_voluntario } = req.body
   try {
