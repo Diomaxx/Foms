@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Bomberos</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-fire-extinguisher"></i>
+                <h1>Sistema de Bomberos</h1>
+            </div>
+            <nav class="nav" id="mainNav">
+                <ul class="nav-list">
+                    <li><a href="#dashboard" class="nav-link active">Inicio</a></li>
+                    <li><a href="#voluntarios" class="nav-link">Voluntarios</a></li>
+                    <li><a href="#brigadas" class="nav-link">Brigadas</a></li>
+                    <li><a href="#roles" class="nav-link">Roles</a></li>
+                    <li><a href="#inventario" class="nav-link">Inventario</a></li>
+                    <li><a href="#ropa" class="nav-link">Ropa</a></li>
+                </ul>
+            </nav>
+            <div class="user-menu">
+                <span id="userName">Usuario</span>
+                <button id="logoutBtn" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Login Modal -->
+    <!-- <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Iniciar Sesión</h2>
+                <span class="close" id="closeLogin">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginCodigo">Código:</label>
+                        <input type="text" id="loginCodigo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Contraseña:</label>
+                        <input type="password" id="loginPassword" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Iniciar Sesión</button>
+                </form>
+                <p class="text-center">
+                    ¿No tienes cuenta? <a href="#" id="showRegister">Registrarse</a>
+                </p>
+            </div>
+        </div>
+    </div> -->
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Registrar Voluntario</h2>
+                <span class="close" id="closeRegister">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="registerCodigo">Código:</label>
+                        <input type="text" id="registerCodigo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerNombre">Nombre:</label>
+                        <input type="text" id="registerNombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerCI">CI:</label>
+                        <input type="text" id="registerCI" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerTelefono">Teléfono:</label>
+                        <input type="tel" id="registerTelefono" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Contraseña:</label>
+                        <input type="password" id="registerPassword" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Registrar</button>
+                </form>
+                <p class="text-center">
+                    ¿Ya tienes cuenta? <a href="#" id="showLogin">Iniciar Sesión</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Total Voluntarios</h3>
+                        <p id="totalVoluntarios">0</p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Brigadas Activas</h3>
+                        <p id="totalBrigadas">0</p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Artículos en Inventario</h3>
+                        <p id="totalArticulos">0</p>
+                    </div>
+                </div>
+                <div class="dashboard-card">
+                    <div class="card-icon">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Ropa Disponible</h3>
+                        <p id="totalRopa">0</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Voluntarios Section -->
+        <section id="voluntarios" class="section">
+            <div class="section-header">
+                <h2>Gestión de Voluntarios</h2>
+                <button id="addVoluntarioBtn" class="btn-primary">
+                    <i class="fas fa-plus"></i> Agregar Voluntario
+                </button>
+            </div>
+            <div class="table-container">
+                <table id="voluntariosTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>CI</th>
+                            <th>Teléfono</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="voluntariosTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Brigadas Section -->
+        <section id="brigadas" class="section">
+            <div class="section-header">
+                <h2>Gestión de Brigadas</h2>
+                <button id="addBrigadaBtn" class="btn-primary">
+                    <i class="fas fa-plus"></i> Agregar Brigada
+                </button>
+            </div>
+            <div class="table-container">
+                <table id="brigadasTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Miembros</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="brigadasTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Roles Section -->
+        <section id="roles" class="section">
+            <div class="section-header">
+                <h2>Gestión de Roles</h2>
+                <button id="addRoleBtn" class="btn-primary">
+                    <i class="fas fa-plus"></i> Agregar Rol
+                </button>
+            </div>
+            <div class="table-container">
+                <table id="rolesTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rolesTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Inventario Section -->
+        <section id="inventario" class="section">
+            <div class="section-header">
+                <h2>Gestión de Inventario</h2>
+                <div class="header-buttons">
+                    <button id="addArticuloBtn" class="btn-primary">
+                        <i class="fas fa-plus"></i> Agregar Artículo
+                    </button>
+                    <button id="addRefaccionBtn" class="btn-secondary">
+                        <i class="fas fa-tools"></i> Agregar Refacción
+                    </button>
+                </div>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="articulos">Artículos</button>
+                <button class="tab-btn" data-tab="refacciones">Refacciones</button>
+            </div>
+
+            <div id="articulos" class="tab-content active">
+                <div class="table-container">
+                    <table id="articulosTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Cantidad</th>
+                                <th>Observaciones</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="articulosTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="refacciones" class="tab-content">
+                <div class="table-container">
+                    <table id="refaccionesTable" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Costo Aproximado</th>
+                                <th>Observaciones</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="refaccionesTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ropa Section -->
+        <section id="ropa" class="section">
+            <div class="section-header">
+                <h2>Gestión de Ropa</h2>
+                <button id="addRopaBtn" class="btn-primary">
+                    <i class="fas fa-plus"></i> Agregar Ropa
+                </button>
+            </div>
+            <div class="table-container">
+                <table id="ropaTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Nombre</th>
+                            <th>Tallas Disponibles</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ropaTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Add Voluntario Modal -->
+    <div id="addVoluntarioModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Voluntario</h2>
+                <span class="close" id="closeAddVoluntario">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addVoluntarioForm">
+                    <div class="form-group">
+                        <label for="voluntarioCodigo">Código:</label>
+                        <input type="text" id="voluntarioCodigo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="voluntarioNombre">Nombre:</label>
+                        <input type="text" id="voluntarioNombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="voluntarioCI">CI:</label>
+                        <input type="text" id="voluntarioCI" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="voluntarioTelefono">Teléfono:</label>
+                        <input type="tel" id="voluntarioTelefono" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Brigada Modal -->
+    <div id="addBrigadaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Brigada</h2>
+                <span class="close" id="closeAddBrigada">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addBrigadaForm">
+                    <div class="form-group">
+                        <label for="brigadaNombre">Nombre:</label>
+                        <input type="text" id="brigadaNombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="brigadaDescripcion">Descripción:</label>
+                        <textarea id="brigadaDescripcion" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Role Modal -->
+    <div id="addRoleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Rol</h2>
+                <span class="close" id="closeAddRole">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addRoleForm">
+                    <div class="form-group">
+                        <label for="roleNombre">Nombre:</label>
+                        <input type="text" id="roleNombre" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Articulo Modal -->
+    <div id="addArticuloModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Artículo</h2>
+                <span class="close" id="closeAddArticulo">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addArticuloForm">
+                    <div class="form-group">
+                        <label for="articuloNombre">Nombre:</label>
+                        <input type="text" id="articuloNombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="articuloCategoria">Categoría:</label>
+                        <input type="text" id="articuloCategoria" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="articuloCantidad">Cantidad:</label>
+                        <input type="number" id="articuloCantidad" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="articuloObservaciones">Observaciones:</label>
+                        <textarea id="articuloObservaciones" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Refaccion Modal -->
+    <div id="addRefaccionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Refacción</h2>
+                <span class="close" id="closeAddRefaccion">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addRefaccionForm">
+                    <div class="form-group">
+                        <label for="refaccionNombre">Nombre:</label>
+                        <input type="text" id="refaccionNombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="refaccionCategoria">Categoría:</label>
+                        <input type="text" id="refaccionCategoria" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="refaccionCosto">Costo Aproximado:</label>
+                        <input type="number" id="refaccionCosto" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="refaccionObservaciones">Observaciones:</label>
+                        <textarea id="refaccionObservaciones" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Ropa Modal -->
+    <div id="addRopaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Agregar Ropa</h2>
+                <span class="close" id="closeAddRopa">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addRopaForm">
+                    <div class="form-group">
+                        <label for="ropaTipo">Tipo:</label>
+                        <input type="text" id="ropaTipo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ropaNombre">Nombre:</label>
+                        <input type="text" id="ropaNombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="ropaTallas">Tallas y Cantidades:</label>
+                        <div id="tallasContainer">
+                            <div class="talla-item">
+                                <select class="talla-select">
+                                    <option value="">Seleccionar talla</option>
+                                    <option value="XS">XS</option>
+                                    <option value="S">S</option>
+                                    <option value="M">M</option>
+                                     <option value="L">L</option>
+                                    <option value="XL">XL</option>
+                                    <option value="XXL">XXL</option>
+                                </select>
+                                <input type="number" class="talla-cantidad" placeholder="Cantidad" min="0">
+                                <button type="button" class="btn-remove-talla">×</button>
+                            </div>
+                        </div>
+                        <button type="button" id="addTallaBtn" class="btn-secondary">+ Agregar Talla</button>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="voluntarios.js"></script>
+</body>
+</html> 
