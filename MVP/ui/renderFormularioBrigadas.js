@@ -18,6 +18,22 @@ export function renderFormularioBrigada(container) {
     <section>
       <div class="section-header">
         <h2>Formulario de Registro de Brigada</h2>
+
+        <div class="step-indicator-container">
+          <div class="step-item" data-step="1">
+            <div class="circle">1</div>
+            <div class="label">Datos Generales</div>
+          </div>
+          <div class="step-item" data-step="2">
+            <div class="circle">2</div>
+            <div class="label">Artículos</div>
+          </div>
+          <div class="step-item" data-step="3">
+            <div class="circle">3</div>
+            <div class="label">Confirmación</div>
+          </div>
+        </div>
+
       </div>
 
       <!-- Paso 1: Datos Generales -->
@@ -99,9 +115,27 @@ export function renderFormularioBrigada(container) {
   `;
 
   const steps = container.querySelectorAll('.modal-step');
+
+  const updateStepIndicator = (stepNum) => {
+    container.querySelectorAll('.step-item').forEach((item, idx) => {
+      const circle = item.querySelector('.circle');
+      item.classList.remove('active', 'completed');
+      if (idx + 1 < stepNum) {
+        item.classList.add('completed');
+        circle.innerHTML = '&#10003;';
+      } else if (idx + 1 === stepNum) {
+        item.classList.add('active');
+        circle.innerHTML = idx + 1;
+      } else {
+        circle.innerHTML = idx + 1;
+      }
+    });
+  };
+
   const showStep = stepNum => {
     steps.forEach(s => s.classList.remove('active'));
     container.querySelector(`.modal-step[data-step="${stepNum}"]`).classList.add('active');
+    updateStepIndicator(stepNum);
   };
 
   container.querySelector('#btnSiguiente1').addEventListener('click', () => {
