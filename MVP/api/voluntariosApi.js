@@ -1,79 +1,68 @@
-import { API_BASE_URL } from './config.js';
+import { API_BASE_URL } from '../config.js';
 
+const VOLUNTARIOS_ENDPOINT = `${API_BASE_URL}/voluntarios`;
 
-async function fetchVoluntarios() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/voluntarios`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        voluntarios = data;
-        return data;
-    } catch (error) {
-        console.error('Error fetching voluntarios:', error);
-        showNotification('Error al cargar voluntarios', 'error');
-        return [];
-    }
+export async function getVoluntarios() {
+  try {
+    const res = await fetch(VOLUNTARIOS_ENDPOINT);
+    if (!res.ok) throw new Error('Error al obtener voluntarios');
+    return await res.json();
+  } catch (err) {
+    console.error('[GET] Voluntarios:', err);
+    return [];
+  }
 }
 
-async function createVoluntario(voluntarioData) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/voluntarios`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(voluntarioData)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const newVoluntario = await response.json();
-        return newVoluntario;
-    } catch (error) {
-        console.error('Error creating voluntario:', error);
-        throw error;
-    }
+export async function getVoluntarioById(id) {
+  try {
+    const res = await fetch(`${VOLUNTARIOS_ENDPOINT}/${id}`);
+    if (!res.ok) throw new Error('Voluntario no encontrado');
+    return await res.json();
+  } catch (err) {
+    console.error('[GET by ID] Voluntario:', err);
+    return null;
+  }
 }
 
-async function updateVoluntario(id, voluntarioData) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/voluntarios/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(voluntarioData)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const updatedVoluntario = await response.json();
-        return updatedVoluntario;
-    } catch (error) {
-        console.error('Error updating voluntario:', error);
-        throw error;
-    }
+export async function createVoluntario(data) {
+  try {
+    const res = await fetch(VOLUNTARIOS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Error al crear voluntario');
+    return await res.json();
+  } catch (err) {
+    console.error('[POST] Voluntario:', err);
+    throw err;
+  }
 }
 
-async function deleteVoluntario(id) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/voluntarios/${id}`, {
-            method: 'DELETE'
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return true;
-    } catch (error) {
-        console.error('Error deleting voluntario:', error);
-        throw error;
-    }
+export async function updateVoluntario(id, data) {
+  try {
+    const res = await fetch(`${VOLUNTARIOS_ENDPOINT}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Error al actualizar voluntario');
+    return await res.json();
+  } catch (err) {
+    console.error('[PUT] Voluntario:', err);
+    throw err;
+  }
+}
+
+export async function deleteVoluntario(id) {
+  try {
+    const res = await fetch(`${VOLUNTARIOS_ENDPOINT}/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Error al eliminar voluntario');
+    return true;
+  } catch (err) {
+    console.error('[DELETE] Voluntario:', err);
+    throw err;
+  }
 }

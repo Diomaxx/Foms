@@ -1,83 +1,57 @@
-import { API_BASE_URL } from './config.js';
+import { API_BASE_URL } from '../config.js';
 
-async function fetchBrigadas() {
-    try {
-        console.log('🔄 Intentando cargar brigadas desde:', `${API_BASE_URL}/brigadas`);
-        const response = await fetch(`${API_BASE_URL}/brigadas`);
-        console.log('📡 Respuesta del servidor brigadas:', response.status, response.statusText);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('✅ Brigadas cargadas:', data);
-        brigadas = data;
-        return data;
-    } catch (error) {
-        console.error('❌ Error fetching brigadas:', error);
-        showNotification('Error al cargar brigadas', 'error');
-        return [];
-    }
+const BRIGADAS_ENDPOINT = `${API_BASE_URL}/brigadas`;
+
+export async function getBrigadas() {
+  try {
+    const res = await fetch(BRIGADAS_ENDPOINT);
+    if (!res.ok) throw new Error('Error al obtener brigadas');
+    return await res.json();
+  } catch (err) {
+    console.error('[GET] Brigadas:', err);
+    return [];
+  }
 }
 
-async function createBrigada(brigadaData) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/brigadas`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(brigadaData)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const newBrigada = await response.json();
-        return newBrigada;
-    } catch (error) {
-        console.error('Error creating brigada:', error);
-        throw error;
-    }
+export async function createBrigada(data) {
+  try {
+    const res = await fetch(BRIGADAS_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Error al crear brigada');
+    return await res.json();
+  } catch (err) {
+    console.error('[POST] Brigada:', err);
+    throw err;
+  }
 }
 
-async function updateBrigada(id, brigadaData) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/brigadas/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(brigadaData)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const updatedBrigada = await response.json();
-        return updatedBrigada;
-    } catch (error) {
-        console.error('Error updating brigada:', error);
-        throw error;
-    }
+export async function updateBrigada(id, data) {
+  try {
+    const res = await fetch(`${BRIGADAS_ENDPOINT}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('Error al actualizar brigada');
+    return await res.json();
+  } catch (err) {
+    console.error('[PUT] Brigada:', err);
+    throw err;
+  }
 }
 
-async function deleteBrigadaAPI(id) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/brigadas/${id}`, {
-            method: 'DELETE'
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        return true;
-    } catch (error) {
-        console.error('Error deleting brigada:', error);
-        throw error;
-    }
+export async function deleteBrigada(id) {
+  try {
+    const res = await fetch(`${BRIGADAS_ENDPOINT}/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Error al eliminar brigada');
+    return true;
+  } catch (err) {
+    console.error('[DELETE] Brigada:', err);
+    throw err;
+  }
 }
