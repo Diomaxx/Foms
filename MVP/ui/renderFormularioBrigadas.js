@@ -3,6 +3,17 @@ import { createBrigada } from '../api/brigadasApi.js';
 import { createArticulo } from '../api/inventario/articulosApi.js';
 
 export function renderFormularioBrigada(container) {
+  function groupByCategoria(articulos) {
+    const grupos = {};
+    articulos.forEach((art, i) => {
+      const categoria = art.categoria || 'Sin categoría';
+      if (!grupos[categoria]) grupos[categoria] = [];
+      grupos[categoria].push({ ...art, index: i });
+    });
+    return grupos;
+  }
+
+
   container.innerHTML = `
     <section>
       <div class="section-header">
@@ -26,29 +37,62 @@ export function renderFormularioBrigada(container) {
       <!-- Paso 2: Artículos -->
       <div class="modal-step" data-step="2">
         <h3>Selección de Artículos</h3>
-        <div class="table-container">
-          <table class="data-table">
-            <thead>
-              <tr><th>Artículo</th><th>Categoría</th><th>Cantidad</th><th>Prioridad</th></tr>
-            </thead>
-            <tbody>
-              ${articulosCategorizados.map((art, i) => `
-                <tr>
-                  <td><input type="checkbox" class="chk-articulo" data-index="${i}" /><label style="margin-left:8px;">${art.nombre}</label></td>
-                  <td>${art.categoria || '-'}</td>
-                  <td><input type="number" class="input-cantidad" data-index="${i}" value="0" min="0" disabled /></td>
-                  <td>${art.prioridad ? '<span class="status-badge status-active">Alta</span>' : '<span class="status-badge status-inactive">Normal</span>'}</td>
-                </tr>`).join('')}
-            </tbody>
-          </table>
+
+        <div class="accordion" id="accordionArticulos">
+          ${Object.entries(groupByCategoria(articulosCategorizados)).map(([categoria, articulos], i) => `
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="heading-${i}">
+                <button class="accordion-button ${i !== 0 ? 'collapsed' : ''}" type="button"
+                        data-bs-toggle="collapse" data-bs-target="#collapse-${i}"
+                        aria-expanded="${i === 0}" aria-controls="collapse-${i}">
+                  ${categoria}
+                </button>
+              </h2>
+              <div id="collapse-${i}" class="accordion-collapse collapse ${i === 0 ? 'show' : ''}"
+                  aria-labelledby="heading-${i}" data-bs-parent="#accordionArticulos">
+                <div class="accordion-body">
+                  <table class="table table-striped table-bordered">
+                    <thead>
+                      <tr><th>Artículo</th><th>Cantidad</th><th>Prioridad</th></tr>
+                    </thead>
+                    <tbody>
+                      ${articulos.map((art, j) => `
+                        <tr>
+                          <td>
+                            <input type="checkbox" class="chk-articulo" data-index="${art.index}" />
+                            <label style="margin-left: 8px;">${art.nombre}</label>
+                          </td>
+                          <td><input type="number" class="input-cantidad" data-index="${art.index}" min="0" value="0" disabled /></td>
+                          <td>
+                            ${art.prioridad
+                              ? '<span class="badge bg-danger">Alta</span>'
+                              : '<span class="badge bg-secondary">Normal</span>'}
+                          </td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          `).join('')}
         </div>
-        <button type="button" class="btn btn-primary" id="btnSiguiente2">Siguiente</button>
+
+        <div class="text-center mt-3">
+          <button type="button" class="btn btn-primary" id="btnSiguiente2">Siguiente</button>
+        </div>
       </div>
+
 
       <!-- Paso Final -->
       <div class="modal-step" data-step="3">
         <h3>Confirmación</h3>
         <p>Verifica todos los datos antes de enviar.</p>
+        
+        <div id="resumenFormulario" class="mb-4">
+          <!-- Aquí se insertará dinámicamente el resumen -->
+        </div>
+
         <button type="submit" class="btn btn-primary" id="btnEnviarFormulario">Enviar formulario</button>
       </div>
     </section>
@@ -67,7 +111,71 @@ export function renderFormularioBrigada(container) {
   });
 
   container.querySelector('#btnSiguiente2').addEventListener('click', () => {
-    showStep(3);
+    const resumenDiv = container.querySelector('#resumenFormulario');
+
+    // 1. Resumen de datos generales
+    const datosGenerales = {
+      nombreBrigada: container.querySelector('#nombreBrigada').value.trim(),
+      cantidadBomberos: container.querySelector('#cantidadBomberos').value,
+      celularComandante: container.querySelector('#celularComandante').value.trim(),
+      encargadoLogistica: container.querySelector('#encargadoLogistica').value.trim(),
+      celularLogistica: container.querySelector('#celularLogistica').value.trim(),
+      numeroEmergencia: container.querySelector('#numeroEmergencia').value.trim(),
+    };
+
+    // 2. Artículos seleccionados
+    const articulosSeleccionados = [];
+    container.querySelectorAll('.chk-articulo:checked').forEach(chk => {
+      const index = chk.dataset.index;
+      const cantidad = parseInt(container.querySelector(`.input-cantidad[data-index="${index}"]`).value);
+      if (cantidad > 0) {
+        articulosSeleccionados.push({
+          nombre: articulosCategorizados[index].nombre,
+          categoria: articulosCategorizados[index].categoria || 'Sin categoría',
+          cantidad,
+          prioridad: articulosCategorizados[index].prioridad ? 'Alta' : 'Normal'
+        });
+      }
+    });
+
+    // 3. Construir HTML
+    resumenDiv.innerHTML = `
+      <h5>Datos de la Brigada</h5>
+      <ul>
+        <li><strong>Nombre:</strong> ${datosGenerales.nombreBrigada}</li>
+        <li><strong>Bomberos activos:</strong> ${datosGenerales.cantidadBomberos}</li>
+        <li><strong>Celular comandante:</strong> ${datosGenerales.celularComandante}</li>
+        <li><strong>Encargado logística:</strong> ${datosGenerales.encargadoLogistica}</li>
+        <li><strong>Celular logística:</strong> ${datosGenerales.celularLogistica}</li>
+        <li><strong>Emergencia pública:</strong> ${datosGenerales.numeroEmergencia}</li>
+      </ul>
+
+      <h5 class="mt-4">Artículos seleccionados (${articulosSeleccionados.length})</h5>
+      ${articulosSeleccionados.length === 0 ? '<p>No se seleccionaron artículos.</p>' : `
+        <table class="table table-sm table-bordered table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Categoría</th>
+              <th>Cantidad</th>
+              <th>Prioridad</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${articulosSeleccionados.map(art => `
+              <tr>
+                <td>${art.nombre}</td>
+                <td>${art.categoria}</td>
+                <td>${art.cantidad}</td>
+                <td><span class="badge ${art.prioridad === 'Alta' ? 'bg-danger' : 'bg-secondary'}">${art.prioridad}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `}
+    `;
+
+    showStep(3); // avanzar al paso de confirmación
   });
 
   container.querySelectorAll('.chk-articulo').forEach(chk => {

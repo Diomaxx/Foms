@@ -1,56 +1,50 @@
 import {
   getVoluntarios,
   createVoluntario,
-  updateVoluntario,
   deleteVoluntario
 } from '../api/voluntariosApi.js';
+import { getBrigadas } from '../api/brigadasApi.js';
+import {
+  getBrigadasVoluntarios,
+  createBrigadaVoluntario
+} from '../api/brigadas/brigadasVoluntariosApi.js';
 
 export async function renderVoluntarios(container) {
-  const voluntarios = await getVoluntarios();
+  const [voluntarios, brigadas, relaciones] = await Promise.all([
+    getVoluntarios(),
+    getBrigadas(),
+    getBrigadasVoluntarios()
+  ]);
+
+  // Relacionar voluntario con brigada
+  const voluntariosConBrigada = voluntarios.map(vol => {
+    const rel = relaciones.find(rel => rel.id_voluntario === vol.id);
+    const brigada = rel ? brigadas.find(b => b.id === rel.id_brigada) : null;
+    return {
+      ...vol,
+      brigadaNombre: brigada?.nombre ?? 'Sin asignar'
+    };
+  });
 
   container.innerHTML = `
     <section>
       <div class="section-header">
         <h2>Gestión de Voluntarios</h2>
         <div class="header-buttons">
-          <button class="btn" id="btnOpenModal">Agregar Voluntario</button>
+          <button class="btn" id="btnOpenVoluntarioModal">Agregar Voluntario</button>
         </div>
       </div>
 
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Código</th>
-              <th>Nombre</th>
-              <th>CI</th>
-              <th>Teléfono</th>
-              <th>Activo</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${voluntarios.map(v => `
-              <tr>
-                <td>${v.id}</td>
-                <td>${v.codigo}</td>
-                <td>${v.nombre}</td>
-                <td>${v.ci}</td>
-                <td>${v.telefono}</td>
-                <td>
-                  <span class="status-badge ${v.activo ? 'status-active' : 'status-inactive'}">
-                    ${v.activo ? 'Activo' : 'Inactivo'}
-                  </span>
-                </td>
-                <td>
-                  <button class="btn edit" data-id="${v.id}">Editar</button>
-                  <button class="btn delete" data-id="${v.id}">Eliminar</button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+      <div class="voluntarios-grid">
+        ${voluntariosConBrigada.map(vol => `
+          <div class="voluntario-card">
+            <h4>${vol.nombre}</h4>
+            <p><strong>CI:</strong> ${vol.ci}</p>
+            <p><strong>Teléfono:</strong> ${vol.telefono}</p>
+            <p><strong>Brigada:</strong> ${vol.brigadaNombre}</p>
+            <button class="btn btn-danger btn-sm eliminar-voluntario" data-id="${vol.id}">Eliminar</button>
+          </div>
+        `).join('')}
       </div>
     </section>
 
@@ -58,18 +52,13 @@ export async function renderVoluntarios(container) {
     <div class="modal" id="voluntarioModal">
       <div class="modal-content">
         <div class="modal-header">
-          <h3 id="modalTitle">Nuevo Voluntario</h3>
-          <button class="close-btn" id="btnCloseModal">&times;</button>
+          <h3>Nuevo Voluntario</h3>
+          <button class="close-btn" id="btnCloseVoluntarioModal">&times;</button>
         </div>
         <div class="modal-body">
           <form id="voluntarioForm">
-            <input type="hidden" id="voluntarioId" />
             <div class="form-group">
-            <label for="codigo">Código</label>
-            <input type="text" id="codigo" readonly />
-            </div>
-            <div class="form-group">
-              <label for="nombre">Nombre</label>
+              <label for="nombre">Nombre completo</label>
               <input type="text" id="nombre" required />
             </div>
             <div class="form-group">
@@ -81,13 +70,13 @@ export async function renderVoluntarios(container) {
               <input type="text" id="telefono" required />
             </div>
             <div class="form-group">
-              <label for="activo">Activo</label>
-              <select id="activo">
-                <option value="true">Sí</option>
-                <option value="false">No</option>
+              <label for="brigada">Brigada asignada</label>
+              <select id="brigada" required>
+                <option value="">Seleccione una brigada</option>
+                ${brigadas.map(b => `<option value="${b.id}">${b.nombre}</option>`).join('')}
               </select>
             </div>
-            <button type="submit" class="btn btn-primary" id="btnGuardar">Guardar</button>
+            <button type="submit" class="btn btn-primary">Registrar</button>
           </form>
         </div>
       </div>
@@ -98,42 +87,54 @@ export async function renderVoluntarios(container) {
   const form = modal.querySelector('#voluntarioForm');
 
   // Abrir modal
-  container.querySelector('#btnOpenModal').addEventListener('click', () => {
-    resetForm();
+  container.querySelector('#btnOpenVoluntarioModal').addEventListener('click', () => {
+    form.reset();
     modal.classList.add('show');
   });
 
   // Cerrar modal
-  modal.querySelector('#btnCloseModal').addEventListener('click', () => {
+  modal.querySelector('#btnCloseVoluntarioModal').addEventListener('click', () => {
     modal.classList.remove('show');
   });
 
-  // Submit
+  // Registrar nuevo voluntario
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const id = form.querySelector('#voluntarioId').value;
-    const data = {
-      codigo: form.codigo.value,
-      nombre: form.nombre.value,
-      ci: form.ci.value,
-      telefono: form.telefono.value,
-      activo: form.activo.value === 'true'
-    };
+    const nombre = form.nombre.value.trim();
+    const ci = form.ci.value.trim();
+    const telefono = form.telefono.value.trim();
+    const id_brigada = parseInt(form.brigada.value);
 
     try {
-      if (id) {
-        await updateVoluntario(id, data);
-      } else {
-        await createVoluntario(data);
-      }
+      const nuevo = await createVoluntario({ nombre, ci, telefono });
+      await createBrigadaVoluntario({ id_voluntario: nuevo.id, id_brigada });
+
+      alert('Voluntario registrado correctamente.');
       modal.classList.remove('show');
       await renderVoluntarios(container);
     } catch (err) {
-      alert('Error al guardar voluntario');
+      console.error('Error al registrar voluntario:', err);
+      alert('Error al registrar voluntario.');
     }
   });
 
-  // Editar
+  // Eliminar voluntario
+  container.querySelectorAll('.btn.delete').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      if (confirm('¿Eliminar este voluntario?')) {
+        try {
+          await deleteVoluntario(id);
+          await renderVoluntarios(container);
+        } catch (err) {
+          console.error('Error eliminando voluntario:', err);
+          alert('No se pudo eliminar el voluntario.');
+        }
+      }
+    });
+  });
+
+    // Editar
   container.querySelectorAll('.btn.edit').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.id;
@@ -150,24 +151,5 @@ export async function renderVoluntarios(container) {
       container.querySelector('#modalTitle').textContent = 'Editar Voluntario';
       modal.classList.add('show');
     });
-  });
-
-  // Eliminar
-  container.querySelectorAll('.btn.delete').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const id = btn.dataset.id;
-      if (confirm('¿Eliminar este voluntario?')) {
-        await deleteVoluntario(id);
-        await renderVoluntarios(container);
-      }
-    });
-  });
-
-  function resetForm() {
-  form.reset();
-  form.voluntarioId.value = '';
-  const codigoGenerado = `VOL${voluntarios.length + 1}`;
-  form.codigo.value = codigoGenerado;
-  container.querySelector('#modalTitle').textContent = 'Nuevo Voluntario';
- }
+  })
 }

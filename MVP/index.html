@@ -9,13 +9,31 @@
 </head>
 <body>
   <header>
-    <h1>Gestión de Brigadas</h1>
-    <nav>
-      <button data-section="registro">Registrar</button>
-      <button data-section="brigadas">Brigadas</button>
-      <button data-section="voluntarios">Voluntarios</button>
-      <button data-section="inventario">Inventario</button>
-    </nav>
+      <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <div class="container-fluid px-3">
+          <a class="navbar-brand fw-bold text-primary" href="#">Gestión de Brigadas</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarBrigadas" aria-controls="navbarBrigadas" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <div class="collapse navbar-collapse" id="navbarBrigadas">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <button class="nav-link btn btn-link" data-section="registro">Registrar</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link btn btn-link" data-section="brigadas">Brigadas</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link btn btn-link" data-section="voluntarios">Voluntarios</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link btn btn-link" data-section="inventario">Inventario</button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
   </header>
 
   <main id="content"></main>
