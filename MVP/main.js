@@ -39,4 +39,4 @@ navButtons.forEach(btn => {
 });
 
 // Cargar por defecto la sección de brigadas
-document.querySelector('nav button[data-section="brigadas"]').click();
+document.querySelector('nav button[data-section="registro"]').click();

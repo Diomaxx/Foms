@@ -5,6 +5,8 @@ import {
   deleteBrigada
 } from '../api/brigadasApi.js';
 
+import { getArticulos, deleteArticulo } from '../api/inventario/articulosApi.js';
+
 export async function renderBrigadas(container) {
   const brigadas = await getBrigadas();
 
@@ -12,33 +14,30 @@ export async function renderBrigadas(container) {
     <section>
       <div class="section-header">
         <h2>Gestión de Brigadas</h2>
-        <div class="header-buttons">
-          <button class="btn" id="btnOpenBrigadaModal">Agregar Brigada</button>
-        </div>
       </div>
 
-      <div class="table-container">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Nombre</th>
-              <th>Descripción</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${brigadas.map(b => `
-              <tr>
-                <td>${b.nombre}</td>
-                <td>${b.descripcion}</td>
-                <td>
-                  <button class="btn edit" data-id="${b.id}">Editar</button>
-                  <button class="btn delete" data-id="${b.id}">Eliminar</button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+      <div class="brigadas-grid">
+        ${brigadas.map(brigada => {
+          let meta = {};
+          try {
+            meta = JSON.parse(brigada.descripcion || '{}');
+          } catch (e) {
+            console.warn(`Descripción no válida para brigada ${brigada.nombre}`);
+          }
+
+          return `
+            <div class="brigada-card">
+              <h3>${brigada.nombre}</h3>
+              <p><strong>Bomberos activos:</strong> ${meta.cantidad_bomberos ?? '-'}</p>
+              <p><strong>Comandante:</strong> ${meta.celular_comandante ?? '-'}</p>
+              <p><strong>Logística:</strong> ${meta.encargado_logistica ?? '-'}</p>
+              <p><strong>Contacto logística:</strong> ${meta.celular_logistica ?? '-'}</p>
+              <p><strong>Emergencia:</strong> ${meta.numero_emergencia ?? 'No brindado'}</p>
+              <button class="btn edit" data-id="${brigada.id}">Editar</button>
+              <button class="btn delete" data-id="${brigada.id}">Eliminar</button>
+            </div>
+          `;
+        }).join('')}
       </div>
     </section>
 
@@ -57,8 +56,8 @@ export async function renderBrigadas(container) {
               <input type="text" id="nombre" readonly />
             </div>
             <div class="form-group">
-              <label for="descripcion">Descripción</label>
-              <input type="text" id="descripcion" required />
+              <label for="descripcion">Descripción (JSON)</label>
+              <textarea id="descripcion" required rows="6"></textarea>
             </div>
             <button type="submit" class="btn btn-primary">Guardar</button>
           </form>
@@ -71,17 +70,17 @@ export async function renderBrigadas(container) {
   const form = modal.querySelector('#brigadaForm');
 
   // Abrir modal
-  container.querySelector('#btnOpenBrigadaModal').addEventListener('click', () => {
+  container.querySelector('#btnOpenBrigadaModal')?.addEventListener('click', () => {
     resetForm();
     modal.classList.add('show');
   });
 
   // Cerrar modal
-  modal.querySelector('#btnCloseBrigadaModal').addEventListener('click', () => {
+  modal.querySelector('#btnCloseBrigadaModal')?.addEventListener('click', () => {
     modal.classList.remove('show');
   });
 
-  // Guardar
+  // Guardar brigada
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = form.brigadaId.value;
@@ -103,7 +102,7 @@ export async function renderBrigadas(container) {
     }
   });
 
-  // Editar
+  // Editar brigada
   container.querySelectorAll('.btn.edit').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.id;
@@ -119,13 +118,33 @@ export async function renderBrigadas(container) {
     });
   });
 
-  // Eliminar
+  // Eliminar brigada con artículos relacionados
   container.querySelectorAll('.btn.delete').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.dataset.id;
-      if (confirm('¿Eliminar esta brigada?')) {
+
+      if (!confirm('¿Eliminar esta brigada y sus artículos asociados?')) return;
+
+      try {
+        const articulos = await getArticulos();
+        const relacionados = articulos.filter(a =>
+          a.observaciones?.trim() === `brigada_id: ${id}`
+        );
+
+        for (const art of relacionados) {
+          try {
+            await deleteArticulo(art.id);
+          } catch (err) {
+            console.warn(`No se pudo eliminar artículo ID ${art.id}:`, err);
+          }
+        }
+
         await deleteBrigada(id);
         await renderBrigadas(container);
+        alert(`Brigada y ${relacionados.length} artículo(s) eliminados.`);
+      } catch (err) {
+        console.error('Error al eliminar brigada:', err);
+        alert('Error al eliminar la brigada. Intenta nuevamente.');
       }
     });
   });
@@ -133,7 +152,8 @@ export async function renderBrigadas(container) {
   function resetForm() {
     form.reset();
     form.brigadaId.value = '';
-    form.nombre.value = `BRG${brigadas.length + 1}`; // Código autogenerado
+    form.nombre.value = `BRG${brigadas.length + 1}`;
+    form.descripcion.value = '';
     container.querySelector('#brigadaModalTitle').textContent = 'Nueva Brigada';
   }
 }
