@@ -1,4 +1,5 @@
 import { articulosCategorizados } from '../data/articulosCategorizados.js';
+import { createBrigada } from '../api/brigadasApi.js';
 import { createArticulo } from '../api/inventario/articulosApi.js';
 
 export function renderFormularioBrigada(container) {
@@ -40,7 +41,7 @@ export function renderFormularioBrigada(container) {
         </form>
       </div>
 
-      <!-- Paso 2: Artículos - con tabla -->
+      <!-- Paso 2: Artículos -->
       <div class="modal-step" data-step="2">
         <h3>Selección de Artículos</h3>
         <div class="table-container">
@@ -84,7 +85,7 @@ export function renderFormularioBrigada(container) {
     </section>
   `;
 
-  // 🔄 Navegación entre pasos
+  // Paso entre modales
   const steps = container.querySelectorAll('.modal-step');
   const showStep = stepNum => {
     steps.forEach(s => s.classList.remove('active'));
@@ -104,7 +105,6 @@ export function renderFormularioBrigada(container) {
     showStep(3);
   });
 
-  // 🔘 Activar cantidad si se marca el checkbox
   container.querySelectorAll('.chk-articulo').forEach(chk => {
     chk.addEventListener('change', () => {
       const index = chk.dataset.index;
@@ -114,31 +114,57 @@ export function renderFormularioBrigada(container) {
     });
   });
 
-  // ✅ Enviar formulario completo
+  // Envío final
   container.querySelector('#btnEnviarFormulario').addEventListener('click', async () => {
-    const nuevos = [];
-    container.querySelectorAll('.chk-articulo:checked').forEach(chk => {
-      const index = chk.dataset.index;
-      const cantidad = parseInt(container.querySelector(`.input-cantidad[data-index="${index}"]`).value);
-      if (cantidad > 0) {
-        nuevos.push({
-          nombre: articulosCategorizados[index].nombre,
-          categoria: articulosCategorizados[index].categoria || 'Sin categoría',
-          observaciones: '',
-          cantidad
-        });
-      }
-    });
+    const nombre = container.querySelector('#nombreBrigada').value.trim();
+    const cantidadBomberos = parseInt(container.querySelector('#cantidadBomberos').value);
+    const celularComandante = container.querySelector('#celularComandante').value.trim();
+    const encargadoLogistica = container.querySelector('#encargadoLogistica').value.trim();
+    const celularLogistica = container.querySelector('#celularLogistica').value.trim();
+    const numeroEmergencia = container.querySelector('#numeroEmergencia').value.trim();
 
-    for (const art of nuevos) {
-      try {
-        await createArticulo(art);
-      } catch (err) {
-        console.error('Error creando artículo:', art, err);
-      }
+    if (!nombre || isNaN(cantidadBomberos) || !celularComandante || !encargadoLogistica || !celularLogistica) {
+      alert('Por favor, completa todos los campos del paso 1.');
+      showStep(1);
+      return;
     }
 
-    alert(`Formulario enviado con ${nuevos.length} artículos registrados.`);
-    location.reload(); // reiniciar
+    try {
+      const nuevaBrigada = await createBrigada({
+        nombre,
+        cantidad_bomberos: cantidadBomberos,
+        celular_comandante: celularComandante,
+        encargado_logistica: encargadoLogistica,
+        celular_logistica: celularLogistica,
+        numero_emergencia: numeroEmergencia
+      });
+
+      const brigadaId = nuevaBrigada.id;
+
+      const articulosSeleccionados = [];
+      container.querySelectorAll('.chk-articulo:checked').forEach(chk => {
+        const index = chk.dataset.index;
+        const cantidad = parseInt(container.querySelector(`.input-cantidad[data-index="${index}"]`).value);
+        if (cantidad > 0) {
+          articulosSeleccionados.push({
+            nombre: articulosCategorizados[index].nombre,
+            categoria: articulosCategorizados[index].categoria || 'Sin categoría',
+            observaciones: '',
+            cantidad,
+            brigada_id: brigadaId
+          });
+        }
+      });
+
+      for (const art of articulosSeleccionados) {
+        await createArticulo(art);
+      }
+
+      alert(`Brigada registrada con ${articulosSeleccionados.length} artículos.`);
+      location.reload();
+    } catch (err) {
+      console.error('Error al registrar la brigada:', err);
+      alert('Ocurrió un error. Verifica la conexión o intenta más tarde.');
+    }
   });
 }
